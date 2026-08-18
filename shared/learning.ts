@@ -80,3 +80,11 @@ export const getCompletionUpdate = (input: {
     streak: calculateNextStreak(input.streak, input.lastActiveAt, input.now),
   };
 };
+
+export const DAILY_TASK_LIMIT = 5;
+
+export const canCompleteDailyTask = (dailyTaskCount: number) => dailyTaskCount < DAILY_TASK_LIMIT;
+
+export const canOpenPromotionTest = (input: { allPerfect: boolean; streak: number; xp: number; nextLevel: LevelCode | undefined }) => {
+  return Boolean(input.allPerfect && input.nextLevel && input.streak >= 7 && input.xp >= levelMeta[input.nextLevel].threshold);
+};

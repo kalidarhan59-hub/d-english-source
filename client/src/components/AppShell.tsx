@@ -8,9 +8,9 @@ import { Link, useLocation } from "wouter";
 import { DChat } from "./DChat";
 
 const links = [
-  { href: "/dashboard", label: "Главная", icon: Home },
-  { href: "/journey", label: "Путь", icon: Map },
-  { href: "/lesson/a0-greetings", label: "Урок", icon: BookOpen },
+  { href: "/academy", label: "Учебный день", icon: Home },
+  { href: "/assessment", label: "Оценка", icon: Map },
+  { href: "/academy", label: "Задачи", icon: BookOpen },
   { href: "/profile", label: "Профиль", icon: UserRound },
 ];
 
@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/80 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/dashboard" className="group flex items-center gap-2.5" aria-label="D-English, главная">
+          <Link href="/academy" className="group flex items-center gap-2.5" aria-label="D-English, учебный кабинет">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-xl font-black text-primary-foreground shadow-[0_8px_18px_rgba(245,196,0,0.26)] transition-transform duration-200 group-hover:rotate-[-8deg]">D</span>
             <span className="text-lg font-extrabold tracking-[-0.04em]">D-English</span>
           </Link>

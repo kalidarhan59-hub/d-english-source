@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateNextStreak, getCompletionUpdate, getLevelFromXp, getLevelProgress, getNextLesson } from "../shared/learning";
+import { canCompleteDailyTask, canOpenPromotionTest, calculateNextStreak, getCompletionUpdate, getLevelFromXp, getLevelProgress, getNextLesson } from "../shared/learning";
 
 describe("learning progression", () => {
   it("maps XP to the standard A0–C2 levels", () => {
@@ -29,5 +29,13 @@ describe("learning progression", () => {
   it("resets a missed streak without penalising the lesson completion itself", () => {
     expect(calculateNextStreak(12, new Date("2026-08-14T12:00:00.000Z"), new Date("2026-08-18T12:00:00.000Z"))).toBe(1);
     expect(calculateNextStreak(12, new Date("2026-08-18T01:00:00.000Z"), new Date("2026-08-18T18:00:00.000Z"))).toBe(12);
+  });
+
+  it("limits the study day to five tasks and protects level-up tests with multiple requirements", () => {
+    expect(canCompleteDailyTask(4)).toBe(true);
+    expect(canCompleteDailyTask(5)).toBe(false);
+    expect(canOpenPromotionTest({ allPerfect: true, streak: 7, xp: 200, nextLevel: "A1" })).toBe(true);
+    expect(canOpenPromotionTest({ allPerfect: true, streak: 2, xp: 200, nextLevel: "A1" })).toBe(false);
+    expect(canOpenPromotionTest({ allPerfect: false, streak: 7, xp: 200, nextLevel: "A1" })).toBe(false);
   });
 });

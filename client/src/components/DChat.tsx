@@ -2,10 +2,12 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { MessageCircle, Send, Sparkles, X } from "lucide-react";
+import { MessageCircle, Send, Sparkles, Volume2, X } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { MascotD } from "./MascotD";
+import { toast } from "sonner";
+import { canUseSpeechSynthesis } from "../../../shared/speech";
 
 type Message = { role: "user" | "d"; text: string };
 
@@ -27,6 +29,19 @@ export function DChat() {
     ask.mutate({ message });
   };
 
+  const speak = (text: string) => {
+    if (!canUseSpeechSynthesis(window.speechSynthesis)) {
+      toast.error("Озвучивание D недоступно в этом браузере. Продолжай с текстовой подсказкой.");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = /[а-яё]/i.test(text) ? "ru-RU" : "en-US";
+    utterance.rate = 0.9;
+    utterance.onerror = () => toast.error("Не удалось озвучить ответ D. Текст ответа остаётся доступным в чате.");
+    window.speechSynthesis.speak(utterance);
+  };
+
   return (
     <div className="fixed bottom-20 right-4 z-50 sm:bottom-6 sm:right-6">
       {open && (
@@ -38,7 +53,7 @@ export function DChat() {
           </header>
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
             {!isAuthenticated && <div className="rounded-2xl bg-primary/15 p-3 text-sm leading-5 text-foreground"><Sparkles size={15} className="mb-1 text-primary" />Войди через Manus, чтобы задать D свой вопрос и сохранить прогресс.</div>}
-            {messages.map((message, index) => <div key={`${message.role}-${index}`} className={cn("max-w-[88%] rounded-2xl px-3.5 py-2.5 text-sm leading-5", message.role === "d" ? "bg-muted text-foreground" : "ml-auto bg-primary text-primary-foreground")}>{message.text}</div>)}
+            {messages.map((message, index) => <div key={`${message.role}-${index}`} className={cn("max-w-[88%] rounded-2xl px-3.5 py-2.5 text-sm leading-5", message.role === "d" ? "bg-muted text-foreground" : "ml-auto bg-primary text-primary-foreground")}><div className="flex items-start gap-2"><span className="flex-1">{message.text}</span>{message.role === "d" && <button onClick={() => speak(message.text)} className="mt-0.5 rounded-md p-1 text-muted-foreground transition-colors hover:bg-background hover:text-foreground" aria-label="Озвучить ответ D"><Volume2 size={15}/></button>}</div></div>)}
             {ask.isPending && <div className="w-fit rounded-2xl bg-muted px-3.5 py-2.5 text-sm text-muted-foreground">D подбирает пример…</div>}
           </div>
           <form className="flex gap-2 border-t border-border p-3" onSubmit={(event) => { event.preventDefault(); submit(); }}>

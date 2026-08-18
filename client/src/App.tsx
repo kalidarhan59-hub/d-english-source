@@ -1,28 +1,26 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Dashboard from "@/pages/Dashboard";
+import Academy from "@/pages/Academy";
+import Assessment from "@/pages/Assessment";
 import Home from "@/pages/Home";
 import Journey from "@/pages/Journey";
 import Lesson from "@/pages/Lesson";
 import NotFound from "@/pages/NotFound";
 import Profile from "@/pages/Profile";
 import { Route, Switch } from "wouter";
-import { AppShell } from "./components/AppShell";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-
-function LearningRoute({ component: Component }: { component: React.ComponentType }) {
-  return <AppShell><Component /></AppShell>;
-}
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/dashboard">{() => <LearningRoute component={Dashboard} />}</Route>
-      <Route path="/journey">{() => <LearningRoute component={Journey} />}</Route>
-      <Route path="/lesson/:id">{() => <LearningRoute component={Lesson} />}</Route>
-      <Route path="/profile">{() => <LearningRoute component={Profile} />}</Route>
+      <Route path="/academy" component={Academy} />
+      <Route path="/assessment" component={Assessment} />
+      <Route path="/dashboard" component={Academy} />
+      <Route path="/journey" component={Journey} />
+      <Route path="/lesson/:id" component={Lesson} />
+      <Route path="/profile" component={Profile} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
