@@ -2,7 +2,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { assessmentAttempts, dailyTasks, essayEntries, learningProfiles, questProgress, vocabularyProgress } from "../drizzle/schema";
 import { createAssessment, getAdaptiveNextQuestion, mapScoreToLevel, normalizeAnswer, type AssessmentQuestion, type PublicAssessmentQuestion } from "../shared/assessment";
 import { calculateNextStreak, canCompleteDailyTask, canOpenPromotionTest, levels, type LevelCode } from "../shared/learning";
-import { ensureLearningProfile, getDb } from "./db";
+import { ensureLearningProfile, getDb, getLearningProfile } from "./db";
 
 const dayKey = (date = new Date()) => date.toISOString().slice(0, 10);
 const publicQuestions = (questions: AssessmentQuestion[]): PublicAssessmentQuestion[] => questions.map(({ answer: _answer, explanation: _explanation, ...question }) => question);
@@ -62,7 +62,7 @@ function getProgramPlan(input: { startedAt: Date | null; careerTrack: string; ie
 async function ensureTodayData(userId: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const profile = await ensureLearningProfile(userId);
+  const profile = await getLearningProfile(userId);
   if (!profile) return undefined;
   const date = dayKey();
   if (profile.diagnosticComplete !== 1) return { profile, date, tasks: [], essay: undefined, quests: [] };
@@ -106,11 +106,22 @@ export async function getStudentWorkspace(userId: number) {
   return { ...data, vocabulary, history, plan: getProgramPlan({ startedAt: data.profile.academicStartedAt, careerTrack: data.profile.careerTrack, ieltsBand: data.profile.ieltsBand, learningTrack: data.profile.learningTrack, completedLessons: data.profile.completedLessons }), videos };
 }
 
+export async function getLearningProfileStatus(userId: number) {
+  const profile = await getLearningProfile(userId);
+  return { exists: Boolean(profile), diagnosticComplete: profile?.diagnosticComplete === 1 };
+}
+
+export async function createLearningProfile(userId: number) {
+  const profile = await ensureLearningProfile(userId, true);
+  if (!profile) throw new Error("Learning profile unavailable");
+  return { created: true, diagnosticComplete: profile.diagnosticComplete === 1 };
+}
+
 export async function startAssessment(userId: number, type: "diagnostic" | "promotion" | "ielts") {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const profile = await ensureLearningProfile(userId);
-  if (!profile) throw new Error("Learning profile unavailable");
+  const profile = await getLearningProfile(userId);
+  if (!profile) throw new Error("Create a learning profile before starting an assessment");
   const targetLevel = type === "promotion" ? levels[Math.min(levels.indexOf(profile.currentLevel as LevelCode) + 1, levels.length - 1)] : profile.currentLevel as LevelCode;
   const questions = createAssessment(`${userId}-${Date.now()}-${type}`, targetLevel, type === "diagnostic" ? 8 : 6);
   const payload = { questions, responses: {} as Record<string, string>, servedIds: [questions[0].id] };
@@ -149,7 +160,7 @@ export async function submitAssessment(input: { userId: number; attemptId: numbe
   const assessedQuestions = questions.filter((question) => servedIds.includes(question.id));
   const correct = assessedQuestions.filter((question) => normalizeAnswer(responses[question.id] ?? "") === normalizeAnswer(question.answer)).length;
   const score = Math.round((correct / Math.max(1, assessedQuestions.length)) * 100);
-  const profile = await ensureLearningProfile(input.userId);
+  const profile = await getLearningProfile(input.userId);
   if (!profile) throw new Error("Learning profile unavailable");
   const type = attempt[0].assessmentType;
   const nextLevel = type === "diagnostic" ? mapScoreToLevel(score) : attempt[0].targetLevel as LevelCode;

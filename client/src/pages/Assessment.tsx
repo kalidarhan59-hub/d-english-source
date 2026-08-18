@@ -13,7 +13,8 @@ import { useLocation } from "wouter";
 export default function Assessment() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
-  const workspace = trpc.academy.workspace.useQuery(undefined, { enabled: isAuthenticated });
+  const profileStatus = trpc.academy.profileStatus.useQuery(undefined, { enabled: isAuthenticated });
+  const workspace = trpc.academy.workspace.useQuery(undefined, { enabled: isAuthenticated && profileStatus.data?.exists === true });
   const start = trpc.academy.startAssessment.useMutation();
   const answerAssessment = trpc.academy.answerAssessment.useMutation();
   const submit = trpc.academy.submitAssessment.useMutation();
@@ -29,10 +30,13 @@ export default function Assessment() {
   const isIeltsWindow = workspace.data?.plan?.phase === "ielts";
 
   useEffect(() => {
-    if (isDiagnosed && !isIeltsWindow && !session) setLocation("/academy");
-  }, [isDiagnosed, isIeltsWindow, session, setLocation]);
+    if (profileStatus.data && !profileStatus.data.exists) setLocation("/onboarding");
+    else if (isDiagnosed && !isIeltsWindow && !session) setLocation("/academy");
+  }, [isDiagnosed, isIeltsWindow, profileStatus.data, session, setLocation]);
 
   if (!isAuthenticated) return <AppShell><LearningState type="auth" title="Сначала нужен вход" description="Диагностика хранится в твоём защищённом учебном профиле." /></AppShell>;
+  if (profileStatus.isLoading) return <AppShell><LearningState type="loading" title="Проверяем учебный профиль" description="D не создаёт профиль автоматически." /></AppShell>;
+  if (profileStatus.data && !profileStatus.data.exists) return <AppShell><LearningState type="loading" title="Нужен явный старт обучения" description="Перенаправляем на подтверждение создания учебного профиля." /></AppShell>;
   if (workspace.isLoading) return <AppShell><LearningState type="loading" title="Подготавливаем оценку" description="D собирает вопросы разной сложности для точной стартовой точки." /></AppShell>;
   if (workspace.isError || !workspace.data) return <AppShell><LearningState type="error" title="Оценка недоступна" description="Попробуй обновить страницу и начать оценку ещё раз." /></AppShell>;
 

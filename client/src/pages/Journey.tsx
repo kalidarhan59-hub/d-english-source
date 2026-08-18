@@ -4,13 +4,18 @@ import { LearningState } from "@/components/LearningState";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { CheckCircle2, ChevronRight, LockKeyhole, Map as MapIcon, Sparkles } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useEffect } from "react";
 import { getLevelFromXp, lessons, levels, levelMeta } from "../../../shared/learning";
 
 export default function Journey() {
   const { isAuthenticated } = useAuth();
-  const summary = trpc.learning.summary.useQuery(undefined, { enabled: isAuthenticated });
+  const [, setLocation] = useLocation();
+  const profileStatus = trpc.academy.profileStatus.useQuery(undefined, { enabled: isAuthenticated });
+  const summary = trpc.learning.summary.useQuery(undefined, { enabled: isAuthenticated && profileStatus.data?.exists === true });
+  useEffect(() => { if (profileStatus.data && !profileStatus.data.exists) setLocation("/onboarding"); }, [profileStatus.data, setLocation]);
   if (!isAuthenticated) return <LearningState type="auth" title="Твой путь ждёт" description="Войди через Manus OAuth, чтобы открыть персональную карту уровней A0–C2." />;
+  if (profileStatus.isLoading || (profileStatus.data && !profileStatus.data.exists)) return <LearningState type="loading" title="Нужен явный старт обучения" description="Проверяем учебный профиль и не создаём его автоматически." />;
   if (summary.isLoading) return <LearningState type="loading" title="Строим карту пути" description="D отмечает твой текущий этап и доступные уроки." />;
   if (summary.isError || !summary.data?.profile) return <LearningState type="error" title="Карта пока недоступна" description="Попробуй обновить страницу — сохранённый прогресс не потеряется." />;
   const xp = summary.data.profile.xp;

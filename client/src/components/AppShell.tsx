@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {links.map((link) => {
               const Icon = link.icon;
               const active = location === link.href || (link.href !== "/dashboard" && location.startsWith(link.href));
-              return <Link key={link.href} href={link.href} className={cn("nav-link", active && "nav-link-active")}><Icon size={16} />{link.label}</Link>;
+              return <Link key={link.label} href={link.href} className={cn("nav-link", active && "nav-link-active")}><Icon size={16} />{link.label}</Link>;
             })}
           </nav>
 
@@ -63,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <nav className="mx-auto grid max-w-[1440px] grid-cols-2 gap-2" aria-label="Мобильная навигация">
               {links.map((link) => {
                 const Icon = link.icon;
-                return <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl bg-surface px-3 py-3 text-sm font-bold"><Icon size={17} />{link.label}</Link>;
+                return <Link key={link.label} href={link.href} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl bg-surface px-3 py-3 text-sm font-bold"><Icon size={17} />{link.label}</Link>;
               })}
             </nav>
           </div>
@@ -74,7 +74,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {links.map((link) => {
           const Icon = link.icon;
           const active = location === link.href || (link.href !== "/dashboard" && location.startsWith(link.href));
-          return <Link key={link.href} href={link.href} className={cn("flex flex-col items-center gap-0.5 rounded-xl px-3 py-1 text-[10px] font-bold text-muted-foreground", active && "bg-primary text-primary-foreground")}><Icon size={18} />{link.label}</Link>;
+          return <Link key={link.label} href={link.href} className={cn("flex flex-col items-center gap-0.5 rounded-xl px-3 py-1 text-[10px] font-bold text-muted-foreground", active && "bg-primary text-primary-foreground")}><Icon size={18} />{link.label}</Link>;
         })}
       </nav>
       <DChat />

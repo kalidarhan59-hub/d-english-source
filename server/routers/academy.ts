@@ -1,8 +1,10 @@
 import { z } from "zod";
-import { completeDailyTask, getStudentWorkspace, recordAssessmentAnswer, saveDailyEssay, startAssessment, submitAssessment } from "../planDb";
+import { completeDailyTask, createLearningProfile, getLearningProfileStatus, getStudentWorkspace, recordAssessmentAnswer, saveDailyEssay, startAssessment, submitAssessment } from "../planDb";
 import { protectedProcedure, router } from "../_core/trpc";
 
 export const academyRouter = router({
+  profileStatus: protectedProcedure.query(async ({ ctx }) => getLearningProfileStatus(ctx.user.id)),
+  createProfile: protectedProcedure.mutation(async ({ ctx }) => createLearningProfile(ctx.user.id)),
   workspace: protectedProcedure.query(async ({ ctx }) => {
     const workspace = await getStudentWorkspace(ctx.user.id);
     if (!workspace) throw new Error("Learning workspace unavailable");

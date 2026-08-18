@@ -90,14 +90,22 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function ensureLearningProfile(userId: number) {
+export async function ensureLearningProfile(userId: number, createIfMissing = false) {
   const db = await getDb();
   if (!db) return undefined;
   const existing = await db.select().from(learningProfiles).where(eq(learningProfiles.userId, userId)).limit(1);
   if (existing[0]) return existing[0];
+  if (!createIfMissing) return undefined;
   await db.insert(learningProfiles).values({ userId, streak: 1, lastActiveAt: new Date() });
   const created = await db.select().from(learningProfiles).where(eq(learningProfiles.userId, userId)).limit(1);
   return created[0];
+}
+
+export async function getLearningProfile(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const existing = await db.select().from(learningProfiles).where(eq(learningProfiles.userId, userId)).limit(1);
+  return existing[0];
 }
 
 export async function getLearningSummary(userId: number) {

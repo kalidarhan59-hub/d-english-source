@@ -8,8 +8,11 @@ import { Award, BookOpen, CheckCircle2, Clock3, Flame, History, LockKeyhole, Map
 
 export default function Profile() {
   const { user, isAuthenticated } = useAuth();
-  const workspace = trpc.academy.workspace.useQuery(undefined, { enabled: isAuthenticated });
+  const profileStatus = trpc.academy.profileStatus.useQuery(undefined, { enabled: isAuthenticated });
+  const workspace = trpc.academy.workspace.useQuery(undefined, { enabled: isAuthenticated && profileStatus.data?.exists === true });
   if (!isAuthenticated) return <AppShell><LearningState type="auth" title="Профиль появляется после входа" description="Войди через Manus OAuth, чтобы видеть сохранённую историю и персональный план." /></AppShell>;
+  if (profileStatus.isLoading) return <AppShell><LearningState type="loading" title="Проверяем учебный профиль" description="История обучения появится только после твоего подтверждения старта." /></AppShell>;
+  if (profileStatus.data && !profileStatus.data.exists) return <AppShell><LearningState type="auth" title="Учебный профиль ещё не создан" description="Вернись на стартовый экран и явно подтверди создание учебного профиля." /></AppShell>;
   if (workspace.isLoading) return <AppShell><LearningState type="loading" title="Открываем профиль" description="D собирает твою историю, квесты и учебные достижения." /></AppShell>;
   if (workspace.isError || !workspace.data) return <AppShell><LearningState type="error" title="Профиль временно недоступен" description="Обнови страницу: данные обучения остаются в профиле." /></AppShell>;
   const { profile, history, quests, plan } = workspace.data;

@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Academy from "@/pages/Academy";
 import Assessment from "@/pages/Assessment";
+import Onboarding from "@/pages/Onboarding";
 import Home from "@/pages/Home";
 import Journey from "@/pages/Journey";
 import Lesson from "@/pages/Lesson";
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/academy" component={Academy} />
       <Route path="/assessment" component={Assessment} />
+      <Route path="/onboarding" component={Onboarding} />
       <Route path="/dashboard" component={Academy} />
       <Route path="/journey" component={Journey} />
       <Route path="/lesson/:id" component={Lesson} />
