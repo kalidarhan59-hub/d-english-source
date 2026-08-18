@@ -1,33 +1,37 @@
+import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { useTheme } from "@/contexts/ThemeContext";
+import { BookOpen, ChevronRight, CirclePlay, Flame, Map, Moon, Sparkles, Sun, Trophy, Volume2 } from "lucide-react";
+import { Link } from "wouter";
+import { MascotD } from "@/components/MascotD";
+import { levels, levelMeta } from "../../../shared/learning";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
 export default function Home() {
-  // The useAuth hook provides authentication state.
-  // To implement login/logout, call logout(), or start login from an event
-  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
-  // startLogin() during render (no href={startLogin()}) — it mints a one-time
-  // nonce cookie and must run only at the moment of navigation.
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
-
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+  const { isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const destination = isAuthenticated ? "/dashboard" : undefined;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
+      <header className="mx-auto flex h-20 max-w-[1280px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="D-English, главная"><span className="grid h-10 w-10 place-items-center rounded-[14px] bg-primary text-xl font-black text-primary-foreground shadow-[0_10px_22px_rgba(245,196,0,0.27)]">D</span><span className="display-font text-lg font-extrabold tracking-[-0.06em]">D-English</span></Link>
+        <nav className="hidden items-center gap-6 text-sm font-bold text-muted-foreground md:flex"><a href="#method" className="transition-colors hover:text-foreground">Как это работает</a><a href="#levels" className="transition-colors hover:text-foreground">Уровни</a><a href="#features" className="transition-colors hover:text-foreground">Возможности</a></nav>
+        <div className="flex items-center gap-2"><button onClick={toggleTheme} className="icon-button" aria-label="Переключить тему">{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>{isAuthenticated ? <Link href="/dashboard" className="rounded-xl bg-primary px-4 py-2.5 text-sm font-extrabold text-primary-foreground shadow-sm transition-transform active:scale-[0.97]">Продолжить</Link> : <button onClick={() => startLogin()} className="rounded-xl bg-primary px-4 py-2.5 text-sm font-extrabold text-primary-foreground shadow-sm transition-transform active:scale-[0.97]">Войти</button>}</div>
+      </header>
+
       <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
+        <section className="app-grid relative mx-auto grid max-w-[1280px] gap-10 px-4 pb-14 pt-8 sm:px-6 sm:pt-12 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:pb-24 lg:pt-20">
+          <div className="relative z-10 flex flex-col justify-center"><div className="appear inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-extrabold text-muted-foreground shadow-sm"><Sparkles size={14} className="text-primary" />Английский, который растёт вместе с тобой</div><h1 className="display-font appear delay-1 mt-5 max-w-[650px] text-[2.6rem] font-extrabold leading-[1.05] tracking-[-0.065em] sm:text-6xl lg:text-7xl">Учись. Продвигайся. <span className="text-primary">Сияй.</span></h1><p className="appear delay-2 mt-5 max-w-[560px] text-base leading-7 text-muted-foreground sm:text-lg">D-English превращает уроки английского в ясный путь от первых слов до уверенного C2. Короткие занятия, понятная практика и пантера D рядом на каждом шаге.</p><div className="appear delay-3 mt-7 flex flex-wrap gap-3">{destination ? <Link href={destination} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-primary-foreground shadow-[0_12px_25px_rgba(245,196,0,0.28)] transition-transform hover:-translate-y-0.5 active:scale-[0.97]">Продолжить путь <ChevronRight size={18} /></Link> : <button onClick={() => startLogin()} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3.5 text-sm font-extrabold text-primary-foreground shadow-[0_12px_25px_rgba(245,196,0,0.28)] transition-transform hover:-translate-y-0.5 active:scale-[0.97]">Начать путь <ChevronRight size={18} /></button>}<a href="#method" className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-5 py-3.5 text-sm font-extrabold transition-colors hover:bg-muted"><CirclePlay size={18} />Посмотреть, как это работает</a></div><p className="mt-4 text-xs font-semibold text-muted-foreground">Вход и профиль — только через Manus OAuth.</p></div>
+          <div className="relative min-h-[390px] sm:min-h-[450px] lg:min-h-[520px]"><div className="absolute inset-6 rounded-[2.2rem] bg-foreground shadow-[0_30px_72px_rgba(8,8,8,0.22)]"/><div className="absolute left-6 top-10 rounded-2xl bg-primary px-4 py-3 text-primary-foreground shadow-[0_10px_25px_rgba(245,196,0,0.22)]"><p className="text-[10px] font-black uppercase tracking-[.16em]">Сегодня</p><p className="mt-0.5 text-sm font-extrabold">+40 XP готово</p></div><MascotD size="lg" mood="proud" className="absolute bottom-0 left-1/2 -translate-x-1/2" /><div className="absolute bottom-7 left-4 right-4 rounded-2xl border border-background/10 bg-background/10 p-4 text-background backdrop-blur-md"><div className="flex items-center justify-between"><span className="text-xs font-bold text-background/65">Твой старт</span><span className="text-sm font-black text-primary">A0</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-background/20"><div className="h-full w-[38%] rounded-full bg-primary" /></div><p className="mt-2 text-sm font-bold">Один урок — и ты уже в пути.</p></div></div>
+        </section>
+
+        <section id="method" className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24"><div className="grid gap-10 lg:grid-cols-[.7fr_1.3fr]"><div><p className="text-xs font-black uppercase tracking-[.18em] text-primary">Твой личный маршрут</p><h2 className="display-font mt-3 text-3xl font-extrabold tracking-[-.05em] sm:text-4xl">Меньше хаоса. Больше ощущения движения.</h2><p className="mt-4 max-w-sm leading-7 text-muted-foreground">Каждая сессия строится вокруг одной понятной цели: освоить тему, потренироваться и увидеть результат.</p></div><div className="grid gap-4 sm:grid-cols-3">{[{ icon: BookOpen, n: "01", title: "Выбери точку старта", text: "D помогает начать с комфортного уровня." }, { icon: Volume2, n: "02", title: "Практикуй навык", text: "Чтение, слова, грамматика и аудирование." }, { icon: Trophy, n: "03", title: "Замечай рост", text: "XP, уроки и путь D отражают твой прогресс." }].map(({icon: Icon, n, title, text}) => <article key={n} className="group rounded-[1.5rem] border border-border bg-surface p-5 transition-transform hover:-translate-y-1"><div className="flex items-center justify-between"><span className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground"><Icon size={19}/></span><span className="text-sm font-black text-border transition-colors group-hover:text-primary">{n}</span></div><h3 className="mt-7 text-base font-extrabold">{title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p></article>)}</div></div></section>
+
+        <section id="levels" className="bg-foreground py-16 text-background sm:py-20"><div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-xs font-black uppercase tracking-[.18em] text-primary">A0 — C2</p><h2 className="display-font mt-3 text-3xl font-extrabold tracking-[-.05em] sm:text-4xl">Твой английский — длинная игра.</h2></div><p className="max-w-sm text-sm leading-6 text-background/65">Не нужно перескакивать через ступени. Мы показываем следующий ясный шаг, а не весь список того, что ещё впереди.</p></div><div className="mt-9 grid gap-2 sm:grid-cols-7">{levels.map((level, index) => <div key={level} className="rounded-2xl border border-background/10 bg-background/5 p-4 transition-colors hover:border-primary/70 hover:bg-background/10"><p className="text-xs font-bold text-background/55">Этап {index + 1}</p><p className="display-font mt-5 text-2xl font-black text-primary">{level}</p><p className="mt-1 text-xs font-bold text-background/80">{levelMeta[level].name}</p></div>)}</div></div></section>
+
+        <section id="features" className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 lg:px-8 lg:py-24"><div className="grid items-center gap-10 rounded-[2rem] bg-primary p-6 text-primary-foreground sm:p-10 lg:grid-cols-[1fr_.72fr] lg:p-14"><div><span className="inline-flex items-center gap-2 rounded-full bg-foreground/10 px-3 py-1.5 text-xs font-extrabold"><Flame size={14} />Мотивация без давления</span><h2 className="display-font mt-4 max-w-xl text-3xl font-extrabold leading-tight tracking-[-.05em] sm:text-4xl">D не оценивает тебя. Она делает путь заметным.</h2><p className="mt-4 max-w-xl leading-7 text-primary-foreground/75">Помощник-пантера подсказывает, объясняет ошибки и празднует маленькие победы — без стыда за паузы и неверные ответы.</p><div className="mt-7 flex flex-wrap gap-2 text-sm font-bold"><span className="rounded-full bg-foreground/10 px-3 py-2">Подсказки в уроке</span><span className="rounded-full bg-foreground/10 px-3 py-2">Понятная обратная связь</span><span className="rounded-full bg-foreground/10 px-3 py-2">Растущий образ D</span></div></div><div className="relative flex min-h-[230px] items-end justify-center overflow-hidden rounded-[1.5rem] bg-foreground"><Map className="absolute right-5 top-5 text-primary/55" size={36} /><MascotD size="md" mood="proud" className="z-10 -mb-4 scale-125" /></div></div></section>
       </main>
+      <footer className="border-t border-border px-4 py-8 text-center text-sm text-muted-foreground">D-English · учись в своём темпе, двигайся уверенно.</footer>
     </div>
   );
 }

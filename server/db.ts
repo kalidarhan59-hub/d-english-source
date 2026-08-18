@@ -1,7 +1,8 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, learningProfiles, lessonProgress, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { getCompletionUpdate, lessons } from "../shared/learning";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -89,4 +90,90 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function ensureLearningProfile(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const existing = await db.select().from(learningProfiles).where(eq(learningProfiles.userId, userId)).limit(1);
+  if (existing[0]) return existing[0];
+  await db.insert(learningProfiles).values({ userId, streak: 1, lastActiveAt: new Date() });
+  const created = await db.select().from(learningProfiles).where(eq(learningProfiles.userId, userId)).limit(1);
+  return created[0];
+}
+
+export async function getLearningSummary(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const profile = await ensureLearningProfile(userId);
+  if (!profile) return undefined;
+  const progress = await db.select().from(lessonProgress).where(eq(lessonProgress.userId, userId)).orderBy(desc(lessonProgress.updatedAt));
+  return { profile, progress };
+}
+
+type CompletionProfile = {
+  xp: number;
+  completedLessons: number;
+  streak: number;
+  lastActiveAt: Date | null;
+};
+
+type CompletionPrevious = { completed: number; xpAwarded: number } | undefined;
+
+export type LessonCompletionStore = {
+  profile: CompletionProfile;
+  getPrevious: () => Promise<CompletionPrevious>;
+  saveProgress: (data: { score: number; xpAwarded: number; completedAt: Date }) => Promise<void>;
+  saveProfile: (data: { xp: number; currentLevel: string; mascotStage: string; completedLessons: number; streak: number; lastActiveAt: Date }) => Promise<void>;
+};
+
+export async function completeLessonWithStore(input: { lessonId: string; score: number }, store: LessonCompletionStore) {
+  const lesson = lessons.find((item) => item.id === input.lessonId);
+  if (!lesson) throw new Error("Unknown lesson");
+  const previous = await store.getPrevious();
+  const alreadyCompleted = previous?.completed === 1;
+  const now = new Date();
+  const update = getCompletionUpdate({
+    xp: store.profile.xp,
+    completedLessons: store.profile.completedLessons,
+    streak: store.profile.streak,
+    lastActiveAt: store.profile.lastActiveAt,
+    lessonXp: lesson.xp,
+    alreadyCompleted,
+    now,
+  });
+
+  await store.saveProgress({
+    score: input.score,
+    xpAwarded: previous ? previous.xpAwarded : update.awardedXp,
+    completedAt: now,
+  });
+
+  await store.saveProfile({
+    xp: update.xp,
+    currentLevel: update.currentLevel,
+    mascotStage: update.currentLevel,
+    completedLessons: update.completedLessons,
+    streak: update.streak,
+    lastActiveAt: now,
+  });
+  return update;
+}
+
+export async function completeLessonForUser(input: { userId: number; lessonId: string; score: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const profile = await ensureLearningProfile(input.userId);
+  if (!profile) throw new Error("Learning profile unavailable");
+  return completeLessonWithStore({ lessonId: input.lessonId, score: input.score }, {
+    profile,
+    getPrevious: async () => {
+      const previous = await db.select().from(lessonProgress).where(and(eq(lessonProgress.userId, input.userId), eq(lessonProgress.lessonId, input.lessonId))).limit(1);
+      return previous[0];
+    },
+    saveProgress: async ({ score, xpAwarded, completedAt }) => {
+      await db.insert(lessonProgress).values({ userId: input.userId, lessonId: input.lessonId, score, completed: 1, xpAwarded, completedAt }).onDuplicateKeyUpdate({ set: { score, completed: 1, completedAt } });
+    },
+    saveProfile: async (data) => {
+      await db.update(learningProfiles).set(data).where(eq(learningProfiles.userId, input.userId));
+    },
+  });
+}

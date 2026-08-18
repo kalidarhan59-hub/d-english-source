@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -25,4 +25,31 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+export const learningProfiles = mysqlTable("learning_profiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  currentLevel: varchar("currentLevel", { length: 2 }).notNull().default("A0"),
+  xp: int("xp").notNull().default(0),
+  streak: int("streak").notNull().default(0),
+  completedLessons: int("completedLessons").notNull().default(0),
+  lastActiveAt: timestamp("lastActiveAt"),
+  mascotStage: varchar("mascotStage", { length: 2 }).notNull().default("A0"),
+  interfaceTheme: mysqlEnum("interfaceTheme", ["light", "dark", "system"]).notNull().default("system"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const lessonProgress = mysqlTable("lesson_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  lessonId: varchar("lessonId", { length: 80 }).notNull(),
+  score: int("score").notNull().default(0),
+  completed: int("completed").notNull().default(0),
+  xpAwarded: int("xpAwarded").notNull().default(0),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [uniqueIndex("lesson_progress_user_lesson_idx").on(table.userId, table.lessonId)]);
+
+export type LearningProfile = typeof learningProfiles.$inferSelect;
+export type LessonProgress = typeof lessonProgress.$inferSelect;
