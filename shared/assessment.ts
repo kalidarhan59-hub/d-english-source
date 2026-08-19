@@ -30,6 +30,11 @@ const assessmentBank: AssessmentQuestion[] = [
   { id: "v3", skill: "vocabulary", difficulty: "stretch", type: "choice", prompt: "“To allocate resources” most nearly means:", options: ["to distribute resources for a purpose", "to remove resources", "to copy resources"], answer: "to distribute resources for a purpose", explanation: "Allocate — распределять ресурсы по назначению." },
 ];
 
+export function getListeningText(questionId: string) {
+  const question = assessmentBank.find((item) => item.id === questionId && item.skill === "listening");
+  return question?.answer ?? "";
+}
+
 const hashSeed = (seed: string) => Array.from(seed).reduce((value, character) => (value * 31 + character.charCodeAt(0)) >>> 0, 7);
 
 export function createAssessment(seed: string, targetLevel: LevelCode = "A0", count = 8) {

@@ -1,12 +1,13 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { AppShell } from "@/components/AppShell";
 import { LearningState } from "@/components/LearningState";
+import { SpeakEnglishButton } from "@/components/SpeakEnglishButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle2, ChevronRight, Headphones, Play, Sparkles } from "lucide-react";
-import { toast } from "sonner";
+import { CheckCircle2, ChevronRight, Sparkles } from "lucide-react";
+import { getListeningText } from "../../../shared/assessment";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 
@@ -25,7 +26,6 @@ export default function Assessment() {
   const [answer, setAnswer] = useState("");
   const [careerTrack, setCareerTrack] = useState("Engineering");
   const [result, setResult] = useState<Awaited<ReturnType<typeof submit.mutateAsync>> | null>(null);
-  const [playing, setPlaying] = useState(false);
   const isDiagnosed = workspace.data?.profile?.diagnosticComplete === 1;
   const isIeltsWindow = workspace.data?.plan?.phase === "ielts";
 
@@ -40,22 +40,6 @@ export default function Assessment() {
   if (workspace.isLoading) return <AppShell><LearningState type="loading" title="Подготавливаем оценку" description="D собирает вопросы разной сложности для точной стартовой точки." /></AppShell>;
   if (workspace.isError || !workspace.data) return <AppShell><LearningState type="error" title="Оценка недоступна" description="Попробуй обновить страницу и начать оценку ещё раз." /></AppShell>;
 
-  const speak = () => {
-    if (!current) return;
-    if (!window.speechSynthesis) {
-      toast.error("Озвучивание недоступно в этом браузере. Используй текстовый вариант задания.");
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const phrase = current.id === "l2" ? "The data suggests a significant improvement." : "I study English every morning.";
-    const utterance = new SpeechSynthesisUtterance(phrase);
-    utterance.lang = "en-US";
-    utterance.rate = 0.78;
-    utterance.onstart = () => setPlaying(true);
-    utterance.onend = () => setPlaying(false);
-    utterance.onerror = () => { setPlaying(false); toast.error("Не удалось воспроизвести аудио. Используй текстовый вариант задания."); };
-    window.speechSynthesis.speak(utterance);
-  };
   const begin = async () => {
     const next = await start.mutateAsync({ type: isDiagnosed ? "ielts" : "diagnostic" });
     setSession(next);
@@ -96,5 +80,6 @@ export default function Assessment() {
   }
 
   const canContinue = Boolean(answer.trim());
-  return <AppShell><div className="mx-auto max-w-3xl"><div className="mb-5 flex items-center justify-between text-sm font-bold text-muted-foreground"><span>Адаптивная диагностика</span><span>Вопрос {servedCount} из {session.questions.length}</span></div><div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${(servedCount / session.questions.length) * 100}%` }} /></div><section className="mt-6 rounded-[2rem] border border-border bg-surface p-6 shadow-[0_16px_38px_rgba(20,20,20,.05)] sm:p-8"><p className="text-xs font-black uppercase tracking-[.15em] text-primary">{current.skill} · {current.difficulty === "stretch" ? "сложный уровень" : "основа"}</p><h1 className="display-font mt-2 text-2xl font-extrabold tracking-[-.055em] sm:text-3xl">{current.prompt}</h1>{current.support && <p className="mt-3 text-sm leading-6 text-muted-foreground">{current.support}</p>}{current.skill === "listening" && <button onClick={speak} className="mt-6 inline-flex h-14 items-center gap-2 rounded-xl bg-foreground px-4 font-extrabold text-primary"><Headphones size={19}/>{playing ? "Воспроизводится…" : "Прослушать фразу"}<Play size={15}/></button>}{current.type === "choice" ? <div className="mt-7 grid gap-2">{current.options?.map((option) => <button key={option} onClick={() => setAnswer(option)} className={cn("min-h-14 rounded-xl border px-4 text-left text-sm font-bold transition-colors", answer === option ? "border-primary bg-primary/15" : "border-border hover:border-foreground/25")}>{option}</button>)}</div> : <Input value={answer} onChange={(event) => setAnswer(event.target.value)} className="mt-7 h-14 rounded-xl text-base" placeholder="Введи ответ на английском"/>}<div className="mt-8 flex justify-end"><Button onClick={continueAdaptive} disabled={!canContinue || answerAssessment.isPending || submit.isPending} className="h-12 rounded-xl bg-primary px-5 font-extrabold text-primary-foreground">{answerAssessment.isPending ? "D выбирает следующий уровень…" : servedCount === session.questions.length ? "Завершить оценку" : "Проверить и продолжить"}<ChevronRight size={17}/></Button></div></section></div></AppShell>;
+  const listeningText = current.skill === "listening" ? getListeningText(current.id) : "";
+  return <AppShell><div className="mx-auto max-w-3xl"><div className="mb-5 flex items-center justify-between text-sm font-bold text-muted-foreground"><span>Адаптивная диагностика</span><span>Вопрос {servedCount} из {session.questions.length}</span></div><div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${(servedCount / session.questions.length) * 100}%` }} /></div><section className="mt-6 rounded-[2rem] border border-border bg-surface p-6 shadow-[0_16px_38px_rgba(20,20,20,.05)] sm:p-8"><p className="text-xs font-black uppercase tracking-[.15em] text-primary">{current.skill} · {current.difficulty === "stretch" ? "сложный уровень" : "основа"}</p><div className="mt-2 flex items-start gap-2"><h1 className="display-font flex-1 text-2xl font-extrabold tracking-[-.055em] sm:text-3xl">{current.prompt}</h1><SpeakEnglishButton text={current.prompt} label="Озвучить английский вопрос"/></div>{current.support && <div className="mt-3 flex items-start gap-1"><p className="flex-1 text-sm leading-6 text-muted-foreground">{current.support}</p><SpeakEnglishButton text={current.support} label="Озвучить английскую подсказку"/></div>}{listeningText && <div className="mt-6"><SpeakEnglishButton text={listeningText} showLabel label="Прослушать фразу для диктанта" className="h-14 rounded-xl bg-foreground px-4 text-primary"/></div>}{current.type === "choice" ? <div className="mt-7 grid gap-2">{current.options?.map((option) => <div key={option} className={cn("flex min-h-14 items-center gap-1 rounded-xl border transition-colors", answer === option ? "border-primary bg-primary/15" : "border-border hover:border-foreground/25")}><button onClick={() => setAnswer(option)} className="min-w-0 flex-1 px-4 text-left text-sm font-bold">{option}</button><SpeakEnglishButton text={option} label={`Озвучить вариант ${option}`} className="mr-2"/></div>)}</div> : <Input value={answer} onChange={(event) => setAnswer(event.target.value)} className="mt-7 h-14 rounded-xl text-base" placeholder="Введи ответ на английском"/>}<div className="mt-8 flex justify-end"><Button onClick={continueAdaptive} disabled={!canContinue || answerAssessment.isPending || submit.isPending} className="h-12 rounded-xl bg-primary px-5 font-extrabold text-primary-foreground">{answerAssessment.isPending ? "D выбирает следующий уровень…" : servedCount === session.questions.length ? "Завершить оценку" : "Проверить и продолжить"}<ChevronRight size={17}/></Button></div></section></div></AppShell>;
 }
