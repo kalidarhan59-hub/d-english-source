@@ -1,4 +1,3 @@
-import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
@@ -51,7 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <button className="icon-button" onClick={() => logout()} aria-label="Выйти"><LogOut size={17} /></button>
               </div>
             ) : (
-              <button className="hidden rounded-xl bg-primary px-4 py-2 text-sm font-extrabold text-primary-foreground shadow-sm transition-transform active:scale-[0.97] sm:inline-flex" onClick={() => startLogin()}>Войти</button>
+              <Link href="/login" className="hidden rounded-xl bg-primary px-4 py-2 text-sm font-extrabold text-primary-foreground shadow-sm transition-transform active:scale-[0.97] sm:inline-flex">Войти</Link>
             )}
             <button className="icon-button md:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Открыть меню">
               {mobileOpen ? <X size={19} /> : <Menu size={19} />}

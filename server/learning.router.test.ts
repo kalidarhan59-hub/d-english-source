@@ -4,6 +4,8 @@ import type { TrpcContext } from "./_core/context";
 vi.mock("./db", () => ({
   getLearningSummary: vi.fn(),
   completeLessonForUser: vi.fn(),
+  getUserByUsername: vi.fn(),
+  createLocalUser: vi.fn(),
 }));
 
 import { completeLessonForUser, getLearningSummary } from "./db";

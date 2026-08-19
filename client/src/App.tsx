@@ -8,6 +8,8 @@ import Journey from "@/pages/Journey";
 import Lesson from "@/pages/Lesson";
 import NotFound from "@/pages/NotFound";
 import Profile from "@/pages/Profile";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -16,6 +18,8 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       <Route path="/academy" component={Academy} />
       <Route path="/assessment" component={Assessment} />
       <Route path="/onboarding" component={Onboarding} />

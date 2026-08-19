@@ -1,5 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import { randomUUID } from "crypto";
 import { InsertUser, learningProfiles, lessonProgress, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { getCompletionUpdate, lessons } from "../shared/learning";
@@ -88,6 +89,38 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserById(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  return result[0];
+}
+
+export async function getUserByUsername(username: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.username, username.trim().toLowerCase())).limit(1);
+  return result[0];
+}
+
+export async function createLocalUser(input: { username: string; email: string; passwordHash: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const username = input.username.trim().toLowerCase();
+  await db.insert(users).values({
+    openId: `local_${randomUUID()}`,
+    name: username,
+    email: input.email.trim().toLowerCase(),
+    loginMethod: "local",
+    username,
+    passwordHash: input.passwordHash,
+    lastSignedIn: new Date(),
+  });
+  const created = await getUserByUsername(username);
+  if (!created) throw new Error("Failed to create user");
+  return created;
 }
 
 export async function ensureLearningProfile(userId: number, createIfMissing = false) {
