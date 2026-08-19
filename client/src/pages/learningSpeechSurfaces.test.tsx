@@ -86,9 +86,13 @@ describe("speech controls on learning pages", () => {
     expect(mocks.speechSpeak).toHaveBeenCalled();
     cleanup();
 
+    window.localStorage.setItem("d-english-speech-rate", "0.55");
     render(<Lesson/>);
+    fireEvent.click(screen.getByRole("button", { name: "Настроить скорость озвучивания" }));
+    expect(screen.getByRole("slider", { name: "Скорость озвучивания" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Озвучить вариант Good morning!" }));
     expect(mocks.speechSpeak).toHaveBeenCalledTimes(2);
+    expect(mocks.speechSpeak.mock.calls[1]?.[0]).toMatchObject({ rate: 0.55 });
     cleanup();
 
     render(<Assessment/>);
@@ -107,6 +111,6 @@ describe("speech controls on learning pages", () => {
     Object.defineProperty(window, "speechSynthesis", { configurable: true, value: undefined });
     render(<Lesson/>);
     fireEvent.click(screen.getByRole("button", { name: "Озвучить вариант Good morning!" }));
-    expect(mocks.toastError).toHaveBeenCalledWith("Озвучивание недоступно в этом браузере. Английский текст остаётся видимым.");
+    expect(mocks.toastError).toHaveBeenCalledWith("Озвучивание недоступно. Открой сайт в Chrome или Safari и проверь звук на устройстве.");
   });
 });

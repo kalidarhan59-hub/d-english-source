@@ -1,0 +1,10 @@
+import { getSpeechRate, MAX_SPEECH_RATE, MIN_SPEECH_RATE, saveSpeechRate, speechRateLabel } from "@/lib/speechSettings";
+import { Gauge, Volume2 } from "lucide-react";
+import React, { useState } from "react";
+import { SpeakEnglishButton } from "./SpeakEnglishButton";
+
+export function SpeechSpeedControl() {
+  const [rate, setRate] = useState(() => getSpeechRate());
+  const updateRate = (value: number) => setRate(saveSpeechRate(value));
+  return <section className="w-[min(330px,calc(100vw-32px))] rounded-2xl border border-border bg-surface p-4 shadow-[0_16px_40px_rgba(10,10,10,.18)]" aria-label="Настройка скорости озвучивания"><div className="flex items-start gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/15 text-primary"><Gauge size={18}/></span><div className="min-w-0 flex-1"><p className="text-sm font-extrabold">Скорость английской речи</p><p className="mt-0.5 text-xs leading-5 text-muted-foreground">Начни медленно, затем повышай темп, когда фразы станут понятнее.</p></div></div><div className="mt-4 flex items-center gap-3"><Volume2 size={17} className="text-primary"/><input aria-label="Скорость озвучивания" type="range" min={MIN_SPEECH_RATE} max={MAX_SPEECH_RATE} step="0.05" value={rate} onChange={(event) => updateRate(Number(event.target.value))} className="h-2 flex-1 cursor-pointer accent-primary"/><span className="w-10 text-right text-sm font-black text-primary">{rate.toFixed(2)}×</span></div><div className="mt-2 flex justify-between text-[10px] font-bold text-muted-foreground"><span>0.50×</span><span>{speechRateLabel(rate)}</span><span>1.15×</span></div><div className="mt-3 flex items-center justify-between rounded-xl bg-muted px-3 py-2"><span className="text-xs font-bold text-muted-foreground">Проверить скорость</span><SpeakEnglishButton text="Good morning!" label="Проверить скорость на фразе Good morning" showLabel/></div><p className="mt-3 text-[11px] leading-4 text-muted-foreground">Если озвучка недоступна, открой сайт в Chrome или Safari и проверь, что звук на устройстве включён.</p></section>;
+}

@@ -1,10 +1,11 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
-import { BookOpen, Flame, Home, LogOut, Map, Menu, Moon, Sparkles, Sun, UserRound, X } from "lucide-react";
+import { BookOpen, Flame, Home, LogOut, Map, Menu, Moon, SlidersHorizontal, Sparkles, Sun, UserRound, X } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { DChat } from "./DChat";
+import { SpeechSpeedControl } from "./SpeechSpeedControl";
 
 const links = [
   { href: "/academy", label: "Учебный день", icon: Home },
@@ -16,6 +17,7 @@ const links = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [speechOpen, setSpeechOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const isDark = theme === "dark";
@@ -38,6 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2">
+            <div className="relative"><button className="icon-button" onClick={() => setSpeechOpen(!speechOpen)} aria-label="Настроить скорость озвучивания"><SlidersHorizontal size={18}/></button>{speechOpen && <div className="absolute right-0 top-12 z-50"><SpeechSpeedControl/></div>}</div>
             <button className="icon-button" onClick={toggleTheme} aria-label="Переключить тему">
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </button>

@@ -24,7 +24,7 @@ describe("SpeechSynthesis availability", () => {
     expect(started).toMatchObject({ status: "started", text: "Good morning!" });
     expect(cancel).toHaveBeenCalledOnce();
     expect(speak).toHaveBeenCalledWith(utterance);
-    expect(utterance).toMatchObject({ lang: "en-US", rate: 0.82, pitch: 1 });
+    expect(utterance).toMatchObject({ lang: "en-US", rate: 0.7, pitch: 1 });
     expect(beginEnglishSpeech("hello", undefined, () => utterance)).toMatchObject({ status: "unsupported", text: "hello" });
   });
 });

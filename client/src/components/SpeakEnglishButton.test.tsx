@@ -37,14 +37,14 @@ describe("SpeakEnglishButton on learning surfaces", () => {
     fireEvent.click(screen.getByRole("button", { name: "Озвучить вариант Good morning" }));
     const utterance = speak.mock.calls[0]?.[0] as MockUtterance;
     expect(cancel).toHaveBeenCalledOnce();
-    expect(utterance).toMatchObject({ text: "Good morning!", lang: "en-US", rate: 0.82, pitch: 1 });
+    expect(utterance).toMatchObject({ text: "Good morning!", lang: "en-US", rate: 0.7, pitch: 1 });
   });
 
   it("shows the accessible fallback message rather than failing when speech synthesis is unavailable", () => {
     Object.defineProperty(window, "speechSynthesis", { configurable: true, value: undefined });
     render(<SpeakEnglishButton text="reliable" label="Озвучить слово reliable"/>);
     fireEvent.click(screen.getByRole("button", { name: "Озвучить слово reliable" }));
-    expect(toastError).toHaveBeenCalledWith("Озвучивание недоступно в этом браузере. Английский текст остаётся видимым.");
+    expect(toastError).toHaveBeenCalledWith("Озвучивание недоступно. Открой сайт в Chrome или Safari и проверь звук на устройстве.");
     expect(speak).not.toHaveBeenCalled();
   });
 });
